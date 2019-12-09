@@ -13,30 +13,36 @@ function findNodes(currentNode, result) {
     }
     if (typeof currentNode === 'object') {
         if (Array.isArray(currentNode)) {
-            // console.log(currentNode);
             for (i = 0; currentNode && i < currentNode.length; i += 1) {
                 currentChild = currentNode[i];
                 findNodes(currentChild, result);
-                // result.push(...newNodes);
             }
         } else {
             Object.keys(currentNode).forEach( label => {
-                // console.log(currentNode);
                 currentChild = currentNode[label];
                 findNodes(currentChild, result);
-                // result.push(...newNodes);
             });
         }
     }
     return result;
 }
 
-function processFile(content) {
+function computeStat(analyzes) {
+    let result = {}
+    for (let stat of analyzes) {
+        Object.keys(stat).forEach( label => {
+            result[label] = (result[label]) ? result[label] + stat[label] : stat[label];
+        });
+    }
+    analyzes.push(result);
+}
+
+function processFile(name, content) {
 
     let input = {
         language: 'Solidity',
         sources: {
-            "file.sol": {
+            [name]: {
                 content: content
             }
         },
@@ -48,9 +54,11 @@ function processFile(content) {
             }
         }
     }
-    
     let output = JSON.parse(solc.compile(JSON.stringify(input)))
-    let ast = output["sources"]["file.sol"]["ast"];
+    if (!output["sources"][name]) {
+        return {[name] : "not compiled"};
+    }
+    let ast = output["sources"][name]["ast"];
     
     return findNodes(ast, {});
 }
@@ -59,8 +67,9 @@ let files = fs.readdirSync('./contracts/');
 let analyzes = [];
 files.forEach(name => {
     let content = fs.readFileSync("./contracts/" + name, 'utf8')
-    analyzes.push(processFile(content));
+    analyzes.push(processFile(name, content));
 })
+computeStat(analyzes);
 console.log(JSON.stringify(analyzes, null, 2))
 
 
