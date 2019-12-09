@@ -50,18 +50,19 @@ function processFile(name, content) {
     }
     
     let output = JSON.parse(solc.compile(JSON.stringify(input)))
-    
     let ast = output["sources"]["file.sol"]["ast"];
     
-    let nodes = findNodes(ast, {});
-    
-    console.log(JSON.stringify(nodes, null, 2))
+    return findNodes(ast, {});
 }
 
-let name = "test.sol"
-fs.readFile(name, 'utf8', function(err, content){
-    processFile(name, content);
-});
+let files = fs.readdirSync('./contracts/');
+let analyzes = [];
+files.forEach(name => {
+    let content = fs.readFileSync("./contracts/" +name, 'utf8')
+    analyzes.push(processFile(name, content));
+})
+console.log(JSON.stringify(analyzes, null, 2))
+
 
 
 
