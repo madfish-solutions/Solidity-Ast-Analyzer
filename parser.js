@@ -31,7 +31,7 @@ function findNodes(currentNode, result) {
     return result;
 }
 
-function processFile(name, content) {
+function processFile(content) {
 
     let input = {
         language: 'Solidity',
@@ -58,8 +58,8 @@ function processFile(name, content) {
 let files = fs.readdirSync('./contracts/');
 let analyzes = [];
 files.forEach(name => {
-    let content = fs.readFileSync("./contracts/" +name, 'utf8')
-    analyzes.push(processFile(name, content));
+    let content = fs.readFileSync("./contracts/" + name, 'utf8')
+    analyzes.push(processFile(content));
 })
 console.log(JSON.stringify(analyzes, null, 2))
 
