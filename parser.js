@@ -46,8 +46,10 @@ function findNodes4(currentNode, result) {
             }
         } else {
             Object.keys(currentNode).forEach( label => {
-                currentChild = currentNode[label];
-                findNodes4(currentChild, result);
+                if (label !== "attributes") {
+                    currentChild = currentNode[label];
+                    findNodes4(currentChild, result);
+                }
             });
         }
     }
