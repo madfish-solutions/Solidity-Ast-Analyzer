@@ -1,7 +1,8 @@
-let solc = require('solc')
+let solc4 = require('solc4')
+let solc5 = require('solc5')
 let fs = require('fs');
 
-function findNodes(currentNode, result) {
+function findNodes5(currentNode, result) {
     let i,
         currentChild;
 
@@ -15,17 +16,44 @@ function findNodes(currentNode, result) {
         if (Array.isArray(currentNode)) {
             for (i = 0; currentNode && i < currentNode.length; i += 1) {
                 currentChild = currentNode[i];
-                findNodes(currentChild, result);
+                findNodes5(currentChild, result);
             }
         } else {
             Object.keys(currentNode).forEach( label => {
                 currentChild = currentNode[label];
-                findNodes(currentChild, result);
+                findNodes5(currentChild, result);
             });
         }
     }
     return result;
 }
+
+function findNodes4(currentNode, result) {
+    let i,
+        currentChild;
+
+    if (!currentNode) {
+        return result;
+    }
+    if (currentNode.name) {
+        result[currentNode.name] = (result[currentNode.name]) ? (result[currentNode.name] + 1) : 1;
+    }
+    if (typeof currentNode === 'object') {
+        if (Array.isArray(currentNode)) {
+            for (i = 0; currentNode && i < currentNode.length; i += 1) {
+                currentChild = currentNode[i];
+                findNodes4(currentChild, result);
+            }
+        } else {
+            Object.keys(currentNode).forEach( label => {
+                currentChild = currentNode[label];
+                findNodes4(currentChild, result);
+            });
+        }
+    }
+    return result;
+}
+
 
 function computeStat(analyzes) {
     let result = {}
@@ -54,13 +82,20 @@ function processFile(name, content) {
             }
         }
     }
-    let output = JSON.parse(solc.compile(JSON.stringify(input)))
+    let output = JSON.parse(solc5.compile(JSON.stringify(input)));
+    let ast;
     if (!output["sources"][name]) {
-        return {[name] : "not compiled"};
+        output = solc4.compile(content);
+        if (!output["sources"][""]) {
+            return {[name] : "not compiled"};
+        }
+        ast = output["sources"][""]["AST"];
+        return findNodes4(ast, {});
+    } else {
+        ast = output["sources"][name]["ast"];
+        return findNodes5(ast, {});
     }
-    let ast = output["sources"][name]["ast"];
     
-    return findNodes(ast, {});
 }
 
 let files = fs.readdirSync('./contracts/');
